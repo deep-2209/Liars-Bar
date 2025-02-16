@@ -3,19 +3,19 @@
 A multiplayer card game with bluffing and Russian roulette mechanics. This project uses Python, Flask, and Socket.IO for the backend, and a simple HTML/JavaScript frontend.
 
 ## Folder Structure
-
-bluff-card-game/
-├── static/
-│   └── game.js
-├── templates/
-│   └── index.html
-├── client.py
-├── game_logic.py
-├── README.md
-├── server.py
-├── requirements.txt
-├── runtime.txt
-└── Procfile
+    ``` bash
+    bluff-card-game/
+    ├── static/
+    │   └── game.js
+    ├── templates/
+    │   └── index.html
+    ├── client.py
+    ├── game_logic.py
+    ├── README.md
+    ├── server.py
+    ├── requirements.txt
+    ├── runtime.txt
+    └── Procfile
 
 
 
