@@ -27,19 +27,28 @@ bluff-card-game/
    git clone <repo-url>
    cd <repo-folder>
 
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
+2. **Create and activate a virtual environment:**
 
+    ```bash
+    python -m venv venv
 
-pip install -r requirements.txt
+    # Windows
+    venv\Scripts\activate
+    
+    # macOS/Linux
+    source venv/bin/activate
 
+3. **Install dependencies:**
 
-python server.py
+    ```bash
+    pip install -r requirements.txt
+
+4. **Run the server**
+    
+    ```bash
+    python server.py
 
 
 Game will be accessible at localhost:10000
 
-Deployed on: https://liars-bar-ulm9.onrender.com/
+Try it on: https://liars-bar-ulm9.onrender.com/
