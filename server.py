@@ -1,5 +1,5 @@
 # ------------ server.py ------------
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO, emit, join_room
 from game_logic import GameState, Player
 import random
@@ -7,7 +7,13 @@ import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
-socketio = SocketIO(app, cors_allowed_origins="*")
+@app.route('/')
+def index():
+    return render_template('index.html')
+@app.route('/static/<path:path>')
+def send_static(path):
+    return send_from_directory('static', path)
+socketio = SocketIO(app, cors_allowed_origins="*",async_mode='eventlet')
 
 games = {}
 CARD_TYPES = ["Ace", "King", "Queen", "Jack"]
@@ -70,7 +76,8 @@ def handle_join_game(data):
     join_room(game_id)
 
     emit('player_joined', {
-        'players': [p.name for p in game.players.values()],
+        # 'players': [p.name for p in game.players.values()], # new changes
+        'players': [{'name': p.name, 'chamber': p.chamber} for p in game.players.values() if p.alive],
         'player_id': player_id
     }, broadcast=True)
     
@@ -78,7 +85,8 @@ def handle_join_game(data):
         game.start_game()
         emit('game_start', {
             'table_card': game.table_card,
-            'players': [p.name for p in game.players.values()]
+            # 'players': [p.name for p in game.players.values()], # new changes
+            'players': [{'name': p.name, 'chamber': p.chamber} for p in game.players.values() if p.alive]
         }, room=game_id)
         start_turn(game_id)
 
@@ -101,8 +109,10 @@ def start_turn(game_id):
 
     emit('turn_start', {
         'player_id': current_player.id,
+        # 'player_name': current_player.name,  # latest change
         'hand': current_player.hand,
-        'table_card': game.table_card
+        'table_card': game.table_card,
+        'players': [{'name': p.name, 'chamber': p.chamber} for p in game.players.values()]
     }, room=game_id)
 
 
@@ -206,7 +216,7 @@ def handle_call_bluff(data):
     socketio.sleep(0.1) 
     emit('new_round', {
         'table_card': game.table_card,
-        'players': [p.name for p in alive_players]
+        'players': [{'name': p.name, 'chamber': p.chamber} for p in alive_players]
     }, room=game_id)
     socketio.sleep(0.1) 
     start_turn(game_id)

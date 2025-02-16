@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bluff Card Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        .card { transition: transform 0.2s; }
+        .card:hover { transform: scale(1.05); }
+        #game-area { display: none; }
+        body { background: #f0f4f8; min-height: 100vh; }
+    </style>
+</head>
+<body>
+    <div class="container p-4">
+        <!-- Lobby Screen -->
+        <div id="lobby" class="box">
+            <h1 class="title is-3">Bluff Card Game</h1>
+            <div class="field">
+                <label class="label">Your Name</label>
+                <div class="control">
+                    <input class="input" type="text" id="name" placeholder="Player Name">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Game ID</label>
+                <div class="control">
+                    <input class="input" type="text" id="gameId" placeholder="Enter 'new' or existing ID">
+                </div>
+            </div>
+            <button class="button is-primary" onclick="connect()">Join Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-area">
+            <div class="box">
+                
+                <div class="column">
+                    <h2 class="title is-4">Game: <span id="game-id-display"></span></h2>
+                 </div>  
+                <div class="column" id="player-names">
+                    <!-- Player names will be inserted here -->
+                </div>
+                <div class="columns">
+                    <div class="column">
+                        <div class="box">
+                            <h3 class="title is-5">Table Card</h3>
+                            <div id="table-card" class="card has-background-warning"></div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="box">
+                            <h3 class="title is-5">Players</h3>
+                            <div id="players-list"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="box" id="hand-area">
+                    <h3 class="title is-5">Your Hand</h3>
+                    <div id="hand" class="columns is-multiline"></div>
+                </div>
+
+                <div id="action-area" class="box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="/static/game.js"></script>
+</body>
+</html>
