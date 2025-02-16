@@ -48,21 +48,29 @@ def turn_start(data):
             'cards': [c.strip() for c in cards]
         })
     else:
-        print(f"\nWaiting for {data['player_id']} to play...")
+        print(f"\nWaiting for {data['player_id']} to play...\n")
 
 
 @sio.event
-def cards_played(data):
+def cards_played(data): 
     print(f"\nPlayer {data['player_id']} played {data['cards']} cards!")
+    
     if data['next_player_id'] == player_id:
-        print("\nYour current hand:", data.get('hand', []))
-        call = input("Call bluff? (y/n): ").lower()
-        if call == 'y':
-            sio.emit('call_bluff', {
-                'game_id': game_id,
-                'player_id': player_id
-            })
-        else:  # Add this else block
+        if len(data.get('hand', [])) > 0:
+            print("\nYour current hand:", data.get('hand', []))
+            call = input("Call bluff? (y/n): ").lower()
+            if call == 'y':
+                sio.emit('call_bluff', {
+                    'game_id': game_id,
+                    'player_id': player_id
+                })
+            else:
+                sio.emit('pass_turn', {
+                    'game_id': game_id,
+                    'player_id': player_id
+                })
+        else:
+            print("Skipping turn (no cards left)")
             sio.emit('pass_turn', {
                 'game_id': game_id,
                 'player_id': player_id
@@ -75,6 +83,7 @@ def bluff_result(data):
     print(f"{data['loser_name']} plays Russian roulette with {data['chamber']} chambers...")
     print(f"{'Survived!' if data['survived'] else 'DIED!'}")
     next_player_id = data.get('next_player_id')
+    sio.sleep(0.5)  # new changes
     if next_player_id == player_id:
         # print("\nIt's your turn now!")   # check this
         sio.sleep(0.1)  

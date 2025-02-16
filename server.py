@@ -32,10 +32,7 @@ class GameSession:
             p.alive = True
 
     def start_new_round(self):
-        """Reinitialize game state for new round"""
         players_list = [p for p in self.players.values() if p.alive]
-        
-        # Clear existing hands before dealing new cards
         for player in players_list:
             player.hand = []  
 
@@ -85,20 +82,21 @@ def handle_join_game(data):
         }, room=game_id)
         start_turn(game_id)
 
-
-
 def start_turn(game_id):
     game = games[game_id]
     start_index = game.current_turn_index
     while True:
         current_player = list(game.players.values())[game.current_turn_index]
-        if current_player.alive:
+        if current_player.alive and len(current_player.hand) > 0:  
             break
         game.current_turn_index = (game.current_turn_index + 1) % len(game.players)
         if game.current_turn_index == start_index:
             raise Exception("No Alive Players remaining!")
             break
-    # current_player = list(game.players.values())[game.current_turn_index]
+    if len(current_player.hand) == 0: 
+        game.current_turn_index = (game.current_turn_index + 1) % len(game.players)
+        start_turn(game_id)
+        return
     game.next_player_id = current_player.id
 
     emit('turn_start', {
@@ -123,14 +121,33 @@ def handle_play_cards(data):
         return
     
     game.last_played_cards = cards
-    # Remove cards from hand
+    
     for card in cards:
         player.hand.remove(card)
     
     # Get next player
-    next_index = (game.current_turn_index + 1) % 4
+    original_next_index = (game.current_turn_index + 1) % len(game.players)
+    next_index = original_next_index
     next_player = list(game.players.values())[next_index]
+    while True:
+        next_player = list(game.players.values())[next_index]
+        if next_player.alive and len(next_player.hand) > 0:
+            break
+        next_index = (next_index + 1) % len(game.players)
+        if next_index == original_next_index:
+            break  # All players have empty hands
+
+    alive_players = [p for p in game.players.values() if p.alive and p != next_player]  
+    all_others_empty = all(len(p.hand) == 0 for p in alive_players)  
     
+    # Force bluff call 
+    if all_others_empty and len(alive_players) > 0:  
+        handle_call_bluff({  
+            'game_id': game_id,  
+            'player_id': next_player.id  
+        })  
+        return  
+
     emit('cards_played', {
         'player_id': player_id,
         'cards': len(cards),
@@ -143,7 +160,6 @@ def handle_pass_turn(data):
     game_id = data['game_id']
     game = games[game_id]
     
-    # Advance to next player
     game.current_turn_index = (game.current_turn_index + 1) % len(game.players)
     start_turn(game_id)
 
@@ -178,7 +194,6 @@ def handle_call_bluff(data):
 
     game.current_turn_index = next_turn_index
     
-    # Emit updates
     emit('bluff_result', {
         'caller_name': game.players[caller_id].name,
         'target_name': current_player.name,
@@ -188,12 +203,12 @@ def handle_call_bluff(data):
         'chamber': loser.chamber + 1,
         'next_player_id': alive_players[next_turn_index].id
     }, room=game_id)
-    
+    socketio.sleep(0.1) 
     emit('new_round', {
         'table_card': game.table_card,
         'players': [p.name for p in alive_players]
     }, room=game_id)
-    
+    socketio.sleep(0.1) 
     start_turn(game_id)
 
 def russian_roulette(player):
@@ -201,7 +216,7 @@ def russian_roulette(player):
         return True
     current_chamber = player.chamber
     bullet_chamber = random.randint(1, current_chamber)
-    player.chamber -= 1  # Decrement AFTER checking
+    player.chamber -= 1 
     
     return bullet_chamber == 1
 
