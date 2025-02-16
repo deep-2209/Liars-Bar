@@ -93,6 +93,11 @@ def handle_join_game(data):
 def start_turn(game_id):
     game = games[game_id]
     start_index = game.current_turn_index
+    alive_players = [p for p in game.players.values() if p.alive]
+    if len(alive_players) == 1:
+        emit('game_over', {'winner': alive_players[0].name}, room=game_id)
+        del games[game_id]
+        return
     while True:
         current_player = list(game.players.values())[game.current_turn_index]
         if current_player.alive and len(current_player.hand) > 0:  
@@ -124,7 +129,11 @@ def handle_play_cards(data):
     
     game = games[game_id]
     player = game.players[player_id]
+    alive_players = [p for p in game.players.values() if p.alive]
     
+    if len(alive_players) <= 1:
+        emit('error', {'message': 'Game already ended'})
+        return
     # Validate move
     if not all(card in player.hand for card in cards):
         emit('error', {'message': 'Invalid cards played'})
@@ -187,6 +196,11 @@ def handle_call_bluff(data):
 
     # Determine next player
     alive_players = [p for p in game.players.values() if p.alive]
+    
+    if len(alive_players) == 1:
+        emit('game_over', {'winner': alive_players[0].name}, room=game_id)
+        del games[game_id]
+        return
     if result:  # Player died
         loser.alive = False
         alive_players = [p for p in alive_players if p != loser]

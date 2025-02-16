@@ -105,7 +105,17 @@ function setupSocketListeners() {
     });
 
     socket.on('new_round', updateGameState);
-    socket.on('game_over', data => alert(`Game Over! Winner: ${data.winner}`));
+    // socket.on('game_over', data => alert(`Game Over! Winner: ${data.winner}`));
+    socket.on('game_over', data => {
+        const winnerMessage = `🎉 ${data.winner} WINS THE GAME! 🎉`;
+        alert(winnerMessage);
+        document.getElementById('action-area').innerHTML = `
+            <div class="notification is-success">
+                <h2 class="title is-4">${winnerMessage}</h2>
+            </div>
+        `;
+        socket.disconnect();
+    });
 }
 
 function createTurnInterface() {
